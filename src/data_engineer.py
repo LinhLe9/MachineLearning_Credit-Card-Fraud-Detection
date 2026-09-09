@@ -5,12 +5,24 @@ import numpy as np
 import pandas as pd
 from google.cloud.exceptions import NotFound
 import joblib
-from utils import sin_transformer, cos_transformer  
+from utils import sin_transformer, cos_transformer 
+from google.cloud import bigquery
+from google.oauth2 import service_account 
 
 root_dir = Path(__file__).resolve().parent.parent
-
 project_id = "frauddetection-507910"
-client = bigquery.Client(project=project_id)
+
+# Lấy chính xác đường dẫn file tạm mà GitHub Action đã tạo ra qua biến môi trường
+credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+if credentials_path and os.path.exists(credentials_path):
+    # Khởi tạo rõ ràng bằng file JSON tạm chuẩn do Action cung cấp, không để thư viện tự mò nữa
+    credentials = service_account.Credentials.from_service_account_file(credentials_path)
+    client = bigquery.Client(project=project_id, credentials=credentials)
+else:
+    # Fallback cho chạy local nếu cần
+    client = bigquery.Client(project=project_id)
+    
 
 datasets = list(client.list_datasets())
 print("Connect successfully! Available dataset in the project:")
