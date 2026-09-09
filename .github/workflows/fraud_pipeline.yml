@@ -2,8 +2,8 @@ name: Credit Card Fraud Detection Pipeline
 
 on:
   schedule:
-    - cron: '0 * * * *' # Tự động chạy định kỳ mỗi giờ
-  workflow_dispatch: # Cho phép kích hoạt chạy thủ công trực tiếp từ giao diện GitHub
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   run-pipeline:
@@ -24,14 +24,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Create BigQuery Credentials from Secret
-      run: python -c 'import os; open("bigquery_credentials.json", "w").write(os.environ["GCP_CREDENTIALS"])'
-      env:
-        GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+    # Sử dụng action chính thức của Google để xử lý credentials an toàn tuyệt đối
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
     - name: Run Fraud Detection Pipeline
       run: |
         python src/data_engineer.py
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: bigquery_credentials.json
         PYTHONPATH: src
