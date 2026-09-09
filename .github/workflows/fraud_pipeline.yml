@@ -25,10 +25,9 @@ jobs:
         pip install -r requirements.txt
 
     - name: Create BigQuery Credentials from Secret
-      run: |
-        cat << 'EOF' > bigquery_credentials.json
-        ${{ secrets.GCP_CREDENTIALS }}
-        EOF
+      run: python -c 'import os; open("bigquery_credentials.json", "w").write(os.environ["GCP_CREDENTIALS"])'
+      env:
+        GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
     - name: Run Fraud Detection Pipeline
       run: |
