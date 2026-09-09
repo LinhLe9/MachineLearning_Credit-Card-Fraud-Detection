@@ -7,6 +7,8 @@ from google.cloud.exceptions import NotFound
 import joblib
 from utils import sin_transformer, cos_transformer  
 
+root_dir = Path(__file__).resolve().parent.parent
+
 project_id = "frauddetection-507910"
 client = bigquery.Client(project=project_id)
 
