@@ -24,8 +24,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # Sử dụng action chính thức của Google để xử lý credentials an toàn tuyệt đối
     - name: Authenticate to Google Cloud
+      id: auth
       uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
@@ -35,3 +35,4 @@ jobs:
         python src/data_engineer.py
       env:
         PYTHONPATH: src
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
