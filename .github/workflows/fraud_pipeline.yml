@@ -8,10 +8,7 @@ on:
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
-
-    env:
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-      
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -20,22 +17,26 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-        cache: 'pip'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install imbalanced-learn scikit-learn
 
-    - name: Authenticate to Google Cloud
-      id: auth
-      uses: google-github-actions/auth@v3
-      with:
-        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+    - name: Authenticate via Google Cloud CLI
+      run: |
+        # Tự động tạo file json từ secret một cách an toàn nhất trong bash
+        echo '${{ secrets.GCP_CREDENTIALS }}' > gcp_key.json
+        
+        # Kích hoạt xác thực gcloud trực tiếp
+        gcloud auth activate-service-account --key-file=gcp_key.json
+        gcloud config set project frauddetection-507910
 
     - name: Run Fraud Detection Pipeline
       run: |
         python src/data_engineer.py
       env:
         PYTHONPATH: src
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+        # Trỏ thẳng đường dẫn đến file key vừa tạo bằng tay
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
