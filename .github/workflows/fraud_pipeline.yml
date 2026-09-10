@@ -24,15 +24,21 @@ jobs:
         pip install -r requirements.txt
         pip install imbalanced-learn scikit-learn
 
-    - name: Authenticate via Google Cloud CLI
+    - name: Authenticate via Python-generated Key File
       run: |
-        # Tự động tạo file json từ secret một cách an toàn nhất trong bash
-        echo '${{ secrets.GCP_CREDENTIALS }}' > gcp_key.json
-        
-        # Kích hoạt xác thực gcloud trực tiếp
+        python -c '
+        import os, json
+        raw_secret = """${{ secrets.GCP_CREDENTIALS }}"""
+        # Đảm bảo parse và dump lại để JSON sạch sẽ, chuẩn cú pháp 100%
+        parsed_json = json.loads(raw_secret)
+        with open("gcp_key.json", "w", encoding="utf-8") as f:
+            json.dump(parsed_json, f)
+        '
         gcloud auth activate-service-account --key-file=gcp_key.json
         gcloud config set project frauddetection-507910
-
+      env:
+        PYTHONPATH: src
+        
     - name: Run Fraud Detection Pipeline
       run: |
         python src/data_engineer.py
